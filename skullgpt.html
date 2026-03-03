@@ -242,6 +242,8 @@
   .tab-panel { display:none; }
   .tab-panel.active { display:flex; flex-direction:column; gap:0.45rem; }
 
+  .config-panel { display:none; }
+
   .config-panel label {
     font-size:0.57rem; letter-spacing:0.15em; text-transform:uppercase;
     color:#5a4a28; display:block; margin-bottom:0.18rem; margin-top:0.4rem;
@@ -489,7 +491,7 @@
     </div>
 
     <!-- CONFIG -->
-    <div class="config-panel">
+    <div class="config-panel" id="configPanel">
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('keys')">Keys</button>
         <button class="tab-btn" onclick="switchTab('prompt')">Prompt</button>
@@ -624,6 +626,11 @@ The game manual (uploaded in the Manual tab) is automatically appended below thi
 <input type="file" id="refKeyInput"  accept="image/*" onchange="loadRefKey(this)" style="display:none">
 
 <script>
+  const isGM = new URLSearchParams(window.location.search).get('gm') === 'true';
+  function applyGMMode(on) {
+    document.getElementById('configPanel').style.display = on ? 'block' : 'none';
+  }
+  applyGMMode(isGM);
 // ══════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════
