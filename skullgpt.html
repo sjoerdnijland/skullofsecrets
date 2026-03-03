@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkullGPT — The Ancient Guardian</title>
+<link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Josefin+Slab:wght@300;400;600&display=swap" rel="stylesheet">
+<!-- mammoth.js for .docx parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root {
+    --stone:    #2c2416;
+    --sandstone:#b8955a;
+    --gold:     #c9a84c;
+    --moss:     #3d5c2e;
+    --aged:     #d4c090;
+    --dust:     #8a7355;
+    --crack:    #1a1208;
+    --glow-g:   #7ab648;
+    --torch:    #e87c2a;
+    --parchment:#f0e6c8;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--stone);
+    color: var(--aged);
+    font-family: 'Josefin Slab', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='4' fill='none' stroke='%23c9a84c' stroke-width='1.5'/%3E%3Cline x1='10' y1='0' x2='10' y2='6' stroke='%23c9a84c' stroke-width='1'/%3E%3Cline x1='10' y1='14' x2='10' y2='20' stroke='%23c9a84c' stroke-width='1'/%3E%3Cline x1='0' y1='10' x2='6' y2='10' stroke='%23c9a84c' stroke-width='1'/%3E%3Cline x1='14' y1='10' x2='20' y2='10' stroke='%23c9a84c' stroke-width='1'/%3E%3C/svg%3E") 10 10, crosshair;
+  }
+
+  /* Stone texture overlay */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:9997; opacity:0.6;
+  }
+
+  /* Vignette */
+  body::after {
+    content:'';
+    position:fixed; inset:0;
+    background: radial-gradient(ellipse at center, transparent 35%, rgba(10,8,3,0.92) 100%);
+    pointer-events:none; z-index:9998;
+  }
+
+  /* ── TORCH FLICKER LIGHTS ── */
+  .torch {
+    position:fixed;
+    width:6px; height:80px;
+    pointer-events:none; z-index:9996;
+  }
+  .torch-left  { left:3%;  top:15%; }
+  .torch-right { right:3%; top:15%; }
+  .torch::before {
+    content:'';
+    position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:6px; height:50px;
+    background:linear-gradient(to top, #5a3a0a, #8b5e1a);
+    border-radius:2px;
+  }
+  .torch::after {
+    content:'🔥';
+    position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+    font-size:1.6rem;
+    animation: torch-flicker 0.15s infinite alternate;
+    filter: drop-shadow(0 0 12px rgba(232,124,42,0.9));
+  }
+  @keyframes torch-flicker {
+    0%   { transform:translateX(-50%) scale(1)    rotate(-2deg); opacity:0.9; }
+    100% { transform:translateX(-50%) scale(1.08) rotate(2deg);  opacity:1;   }
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align:center;
+    padding:2rem 1rem 0.75rem;
+    position:relative;
+  }
+
+  .title-wrap {
+    display:inline-block;
+    position:relative;
+    padding:0.5rem 2rem;
+  }
+
+  .title-wrap::before, .title-wrap::after {
+    content:'';
+    position:absolute; top:50%; left:0; right:0; height:1px;
+    background:linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+
+  header h1 {
+    font-family:'Uncial Antiqua', serif;
+    font-size: clamp(2rem, 5.5vw, 3.8rem);
+    color: var(--gold);
+    text-shadow:
+      0 0 8px rgba(201,168,76,0.7),
+      0 0 25px rgba(232,124,42,0.4),
+      3px 3px 0 rgba(0,0,0,0.8);
+    letter-spacing:0.12em;
+    animation: title-ember 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes title-ember {
+    0%   { text-shadow: 0 0 8px rgba(201,168,76,0.6), 0 0 20px rgba(232,124,42,0.3), 3px 3px 0 rgba(0,0,0,0.8); }
+    100% { text-shadow: 0 0 16px rgba(201,168,76,0.9), 0 0 40px rgba(232,124,42,0.6), 3px 3px 0 rgba(0,0,0,0.8); }
+  }
+
+  .rune-strip {
+    font-family:'Uncial Antiqua', serif;
+    font-size:0.65rem;
+    color:var(--dust);
+    letter-spacing:0.6em;
+    margin-top:0.3rem;
+    opacity:0.7;
+  }
+
+  /* ── LAYOUT ── */
+  .main-layout {
+    display:grid;
+    gap:1.5rem;
+    padding:1rem 1.5rem 2rem;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  @media (min-width:820px) {
+    .main-layout {
+      grid-template-columns:1fr 310px;
+    }
+    .skull-panel { grid-column:2; grid-row:1/3; position:sticky; top:1rem; align-self:start; }
+    .chat-panel  { grid-column:1; grid-row:1/3; }
+  }
+
+  /* ── SKULL PANEL ── */
+  .skull-panel {
+    display:flex; flex-direction:column; align-items:center; gap:0.8rem;
+  }
+
+  /* Stone pedestal for skull */
+  .skull-pedestal {
+    position:relative;
+    background:linear-gradient(160deg, #3a2e1a, #1e180a);
+    border:2px solid #4a3a1e;
+    border-radius:6px;
+    padding:1.2rem 1rem 0.8rem;
+    width:100%;
+    display:flex; flex-direction:column; align-items:center; gap:0.6rem;
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.6),
+      0 4px 20px rgba(0,0,0,0.8),
+      0 0 40px rgba(201,168,76,0.05);
+  }
+
+  /* Corner rune marks */
+  .skull-pedestal::before {
+    content:'✦ ☽ ✦';
+    position:absolute; top:6px; left:50%; transform:translateX(-50%);
+    font-size:0.55rem; letter-spacing:0.5em;
+    color:var(--dust); opacity:0.5;
+  }
+
+  .skull-container {
+    position:relative;
+    width:240px; height:240px;
+  }
+
+  #skullCanvas {
+    width:100%; height:100%;
+    filter:
+      drop-shadow(0 0 15px rgba(122,182,72,0.35))
+      drop-shadow(0 0 40px rgba(201,168,76,0.15));
+  }
+
+  /* Moss glow ring */
+  .skull-glow-ring {
+    position:absolute; inset:-16px;
+    border-radius:50%;
+    background:radial-gradient(ellipse, rgba(61,92,46,0.2) 0%, transparent 70%);
+    animation:glow-pulse 3s ease-in-out infinite;
+    pointer-events:none;
+  }
+
+  @keyframes glow-pulse {
+    0%,100%{ transform:scale(1); opacity:0.5; }
+    50%    { transform:scale(1.06); opacity:1; }
+  }
+
+  /* Status */
+  .status-badge {
+    display:flex; align-items:center; gap:0.5rem;
+    font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase;
+    color:#5a4a2a; transition:color 0.3s;
+  }
+
+  .status-dot {
+    width:7px; height:7px; border-radius:50%; background:#2a1e08;
+    transition:background 0.3s, box-shadow 0.3s;
+  }
+
+  .status-badge.speaking .status-dot { background:var(--glow-g); box-shadow:0 0 8px var(--glow-g); animation:blink 0.4s infinite; }
+  .status-badge.speaking { color:var(--glow-g); }
+  .status-badge.thinking .status-dot { background:var(--torch); box-shadow:0 0 8px var(--torch); }
+  .status-badge.thinking { color:var(--torch); }
+  .status-badge.recording .status-dot { background:#e84040; box-shadow:0 0 10px #e84040; animation:blink 0.3s infinite; }
+  .status-badge.recording { color:#e84040; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+  /* ── CONFIG PANEL (stone tablet style) ── */
+  .config-panel {
+    background:linear-gradient(160deg, rgba(40,30,12,0.95), rgba(25,18,6,0.98));
+    border:1px solid #3a2e14;
+    border-radius:4px;
+    padding:0.75rem;
+    width:100%;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .tabs {
+    display:flex; border-bottom:1px solid #2a2010; margin-bottom:0.7rem; gap:0;
+  }
+
+  .tab-btn {
+    background:none; border:none; border-bottom:2px solid transparent;
+    color:#4a3a1a;
+    font-family:'Josefin Slab', serif; font-size:0.6rem;
+    letter-spacing:0.12em; text-transform:uppercase;
+    padding:0.35rem 0.55rem; cursor:pointer; transition:all 0.2s;
+    margin-bottom:-1px;
+  }
+
+  .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+  .tab-btn:hover  { color:var(--sandstone); }
+
+  .tab-panel { display:none; }
+  .tab-panel.active { display:flex; flex-direction:column; gap:0.45rem; }
+
+  .config-panel label {
+    font-size:0.57rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:#5a4a28; display:block; margin-bottom:0.18rem; margin-top:0.4rem;
+  }
+  .config-panel label:first-child { margin-top:0; }
+
+  .config-panel input[type="password"],
+  .config-panel input[type="text"],
+  .config-panel select,
+  .config-panel textarea {
+    width:100%;
+    background:rgba(0,0,0,0.5);
+    border:1px solid #2a2010;
+    border-radius:3px;
+    color:var(--aged);
+    font-family:'Josefin Slab', serif; font-size:0.75rem;
+    padding:0.32rem 0.55rem;
+    outline:none; resize:vertical;
+    transition:border-color 0.2s;
+  }
+
+  .config-panel input:focus,
+  .config-panel select:focus,
+  .config-panel textarea:focus { border-color:var(--gold); }
+
+  .config-panel textarea { min-height:120px; font-size:0.7rem; line-height:1.5; }
+
+  .btn-stone {
+    background:linear-gradient(160deg, rgba(80,60,20,0.6), rgba(50,35,10,0.8));
+    border:1px solid var(--gold);
+    color:var(--gold);
+    font-family:'Josefin Slab', serif; font-size:0.62rem;
+    letter-spacing:0.1em; text-transform:uppercase;
+    padding:0.35rem 0.65rem; border-radius:3px;
+    cursor:pointer; white-space:nowrap; transition:all 0.2s;
+    width:100%; margin-top:0.2rem;
+  }
+
+  .btn-stone:hover { background:rgba(80,60,20,0.9); box-shadow:0 0 10px rgba(201,168,76,0.3); }
+
+  .btn-ghost {
+    background:none; border:1px solid #2a2010; color:#4a3a1a;
+  }
+  .btn-ghost:hover { border-color:#4a3a1a; color:var(--dust); background:none; box-shadow:none; }
+
+  /* Upload zone */
+  .upload-zone {
+    width:100%; border:1px dashed #3a2a10; border-radius:3px;
+    padding:0.6rem; text-align:center; font-size:0.62rem;
+    color:#3a2a10; cursor:pointer; transition:all 0.2s; letter-spacing:0.08em;
+  }
+  .upload-zone:hover { border-color:var(--gold); color:var(--dust); }
+
+  .key-preview {
+    width:100%; max-height:80px; object-fit:contain;
+    border:1px dashed #2a2010; border-radius:3px; background:#050400;
+    display:none;
+  }
+  .key-preview.visible { display:block; }
+
+  /* Manual status */
+  .manual-status {
+    font-size:0.62rem; color:var(--moss); letter-spacing:0.08em;
+    display:none; align-items:center; gap:0.4rem;
+  }
+  .manual-status.visible { display:flex; }
+
+  .note { font-size:0.58rem; color:#3a2a10; line-height:1.5; }
+
+  .error-msg { color:#c04040; font-size:0.7rem; text-align:center; display:none; margin-top:0.3rem; }
+  .error-msg.visible { display:block; }
+
+  /* ── CHAT PANEL ── */
+  .chat-panel { display:flex; flex-direction:column; gap:0.7rem; }
+
+  /* Parchment scroll feel */
+  .chat-log {
+    background:
+      linear-gradient(to bottom, rgba(15,11,4,0.97), rgba(10,7,2,0.99));
+    border:1px solid #2a2010;
+    border-radius:4px;
+    height:420px; overflow-y:auto;
+    padding:1.1rem;
+    display:flex; flex-direction:column; gap:0.9rem;
+    scrollbar-width:thin; scrollbar-color:var(--dust) transparent;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);
+    position:relative;
+  }
+
+  /* Aged paper top/bottom fade */
+  .chat-log::before, .chat-log::after {
+    content:''; position:sticky; display:block;
+    height:20px; pointer-events:none; z-index:1; flex-shrink:0;
+  }
+  .chat-log::before { top:0; background:linear-gradient(to bottom, rgba(10,7,2,1), transparent); margin-bottom:-20px; }
+
+  .chat-log::-webkit-scrollbar { width:3px; }
+  .chat-log::-webkit-scrollbar-thumb { background:var(--dust); border-radius:2px; }
+
+  .message { display:flex; flex-direction:column; gap:0.22rem; animation:msg-in 0.3s ease-out; }
+  @keyframes msg-in { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+  .message .sender { font-size:0.56rem; letter-spacing:0.22em; text-transform:uppercase; }
+  .message.skull .sender { color:var(--gold); }
+  .message.user  .sender { color:#4a3a1a; }
+  .message.skull .text { color:var(--aged); line-height:1.7; font-size:0.9rem; font-weight:300; }
+  .message.user  .text { color:#6a5a34; line-height:1.5; font-size:0.86rem; }
+
+  /* Streaming text reveal */
+  .sentence-pending { opacity:0; transition:opacity 0.25s ease; }
+  .live-text { display:inline; }
+
+  /* Decorative glyph before skull messages */
+  .message.skull .sender::before { content:'⚱ '; }
+  .message.user  .sender::before { content:'⚔ '; }
+
+  .message .attached-img {
+    max-width:140px; max-height:100px; border-radius:3px;
+    border:1px solid #3a2a10; object-fit:contain; margin-top:0.35rem; opacity:0.85;
+  }
+
+  .skull-typing { display:none; gap:5px; align-items:center; padding:0.4rem 0; }
+  .skull-typing.active { display:flex; }
+  .skull-typing span {
+    width:5px; height:5px; background:var(--gold); border-radius:50%;
+    animation:tdot 1.2s infinite;
+  }
+  .skull-typing span:nth-child(2){animation-delay:.25s}
+  .skull-typing span:nth-child(3){animation-delay:.5s}
+  @keyframes tdot{0%,80%,100%{transform:scale(1);opacity:0.3}40%{transform:scale(1.5);opacity:1}}
+
+  /* ── INPUT AREA ── */
+  .input-row { display:flex; gap:0.5rem; align-items:flex-end; }
+
+  .chat-input {
+    flex:1;
+    background:rgba(0,0,0,0.6);
+    border:1px solid #2a2010;
+    border-radius:4px;
+    color:var(--aged);
+    font-family:'Josefin Slab', serif; font-size:0.9rem;
+    padding:0.6rem 0.85rem;
+    outline:none; resize:none; height:48px;
+    transition:border-color 0.2s;
+  }
+  .chat-input:focus { border-color:var(--gold); }
+  .chat-input::placeholder { color:#2a2010; }
+
+  /* DARE button — carved stone look */
+  .btn-send {
+    background:linear-gradient(160deg, #5a420e, #3a2808);
+    border:1px solid var(--gold);
+    border-radius:4px;
+    color:var(--gold);
+    font-family:'Uncial Antiqua', serif; font-size:0.72rem;
+    letter-spacing:0.06em;
+    padding:0 1.1rem; height:48px;
+    cursor:pointer; transition:all 0.2s; white-space:nowrap;
+  }
+  .btn-send:hover { background:rgba(90,66,14,0.9); box-shadow:0 0 14px rgba(201,168,76,0.4); }
+  .btn-send:disabled { opacity:0.3; cursor:not-allowed; }
+
+  /* Key photo button */
+  .btn-icon {
+    background:rgba(0,0,0,0.5);
+    border:1px solid #2a2010;
+    border-radius:4px;
+    color:#4a3a1a; font-size:1rem;
+    height:48px; width:42px;
+    cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .btn-icon:hover    { border-color:var(--gold); color:var(--aged); }
+  .btn-icon.active   { border-color:#e84040; color:#e84040; background:rgba(80,0,0,0.3); }
+  .btn-icon.has-item { border-color:var(--gold); color:var(--gold); }
+
+  /* PTT recording indicator */
+  .recording-wave {
+    display:none; align-items:center; gap:3px;
+    padding:0.3rem 0.6rem;
+    background:rgba(100,0,0,0.2);
+    border:1px solid rgba(200,0,0,0.4);
+    border-radius:3px; font-size:0.65rem; color:#c04040;
+    letter-spacing:0.1em;
+  }
+  .recording-wave.visible { display:flex; }
+  .wave-bar {
+    width:3px; border-radius:2px; background:#e84040;
+    animation:wave 0.6s ease-in-out infinite alternate;
+  }
+  .wave-bar:nth-child(1){height:8px;  animation-delay:0s}
+  .wave-bar:nth-child(2){height:16px; animation-delay:0.1s}
+  .wave-bar:nth-child(3){height:12px; animation-delay:0.2s}
+  .wave-bar:nth-child(4){height:20px; animation-delay:0.15s}
+  .wave-bar:nth-child(5){height:10px; animation-delay:0.05s}
+  @keyframes wave{from{transform:scaleY(0.4)} to{transform:scaleY(1)}}
+
+  /* Pending image strip */
+  .pending-strip {
+    display:none; align-items:center; gap:0.5rem;
+    padding:0.3rem 0.6rem;
+    background:rgba(40,30,10,0.7);
+    border:1px solid #3a2a10; border-radius:3px;
+    font-size:0.65rem; color:#6a5a34;
+  }
+  .pending-strip.visible { display:flex; }
+  .pending-strip img { height:28px; width:28px; object-fit:cover; border-radius:2px; opacity:0.8; }
+  .pending-strip .rm { margin-left:auto; cursor:pointer; color:#4a3a1a; padding:0 0.2rem; }
+  .pending-strip .rm:hover { color:#c04040; }
+
+  .footer-note { font-size:0.58rem; color:#2a2010; letter-spacing:0.05em; text-align:center; }
+
+  /* Divider ornament */
+  .ornament { text-align:center; color:var(--dust); font-size:0.7rem; opacity:0.4; letter-spacing:0.4em; margin:0.2rem 0; }
+
+  #playerKeyInput, #refKeyInput, #manualInput { display:none; }
+</style>
+</head>
+<body>
+
+<!-- Torches -->
+<div class="torch torch-left"></div>
+<div class="torch torch-right"></div>
+
+<header>
+  <div class="title-wrap">
+    <h1>☠ SkullGPT ☠</h1>
+  </div>
+  <p class="rune-strip">ᚦ · Guardian of the Ancient Tomb · ᚦ</p>
+</header>
+
+<div class="main-layout">
+
+  <!-- ══════════════ SKULL PANEL ══════════════ -->
+  <div class="skull-panel">
+    <div class="skull-pedestal">
+      <div class="skull-container">
+        <div class="skull-glow-ring"></div>
+        <canvas id="skullCanvas" width="480" height="480"></canvas>
+      </div>
+      <div class="status-badge" id="statusBadge">
+        <div class="status-dot"></div>
+        <span id="statusText">DORMANT</span>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="config-panel">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('keys')">Keys</button>
+        <button class="tab-btn" onclick="switchTab('prompt')">Prompt</button>
+        <button class="tab-btn" onclick="switchTab('manual')">Manual</button>
+        <button class="tab-btn" onclick="switchTab('refkey')">Key</button>
+        <button class="tab-btn" onclick="switchTab('voice')">Voice</button>
+      </div>
+
+      <!-- KEYS -->
+      <div class="tab-panel active" id="tab-keys">
+        <label>OpenAI API Key</label>
+        <input type="password" id="openaiKey" placeholder="sk-••••••••••••••••">
+        <label>ElevenLabs API Key <span style="color:#2a2010">(optional)</span></label>
+        <input type="password" id="elApiKey" placeholder="sk-••••••••••••••••">
+        <button class="btn-stone" onclick="saveConfig()">⚱ Bind Keys</button>
+        <p class="note" style="margin-top:0.3rem">OpenAI key: <strong style="color:#4a3a1a">platform.openai.com</strong> → API Keys. Requires gpt-4o access.</p>
+      </div>
+
+      <!-- PROMPT -->
+      <div class="tab-panel" id="tab-prompt">
+        <label>Base System Prompt</label>
+        <textarea id="systemPrompt" placeholder="Your SkullGPT personality and core rules go here.
+
+The game manual (uploaded in the Manual tab) is automatically appended below this."></textarea>
+        <button class="btn-stone" onclick="savePrompt()">⚱ Save Prompt</button>
+        <button class="btn-stone btn-ghost" onclick="resetPrompt()">Reset to Default</button>
+      </div>
+
+      <!-- MANUAL -->
+      <div class="tab-panel" id="tab-manual">
+        <label>Game Manual — upload your .docx file</label>
+        <div class="upload-zone" onclick="document.getElementById('manualInput').click()">
+          📜 Upload Game Manual (.docx)
+        </div>
+        <input type="file" id="manualInput" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="loadManual(this)">
+
+        <div class="manual-status" id="manualStatus">
+          <span>✓</span><span id="manualStatusText">Manual loaded</span>
+        </div>
+
+        <p class="note" style="margin-top:0.3rem">
+          Text is extracted from your .docx and appended to the system prompt automatically. SkullGPT will know everything in the manual. Stored in browser only.
+        </p>
+        <button class="btn-stone btn-ghost" onclick="clearManual()">Clear Manual</button>
+      </div>
+
+      <!-- REF KEY -->
+      <div class="tab-panel" id="tab-refkey">
+        <label>Correct Key Reference Image</label>
+        <img id="refKeyPreview" class="key-preview" alt="Reference key">
+        <div class="upload-zone" onclick="document.getElementById('refKeyInput').click()">
+          🔑 Upload Reference Key Photo
+        </div>
+        <input type="file" id="refKeyInput" accept="image/*" onchange="loadRefKey(this)">
+        <p class="note" style="margin-top:0.3rem">Sent alongside player key photos so GPT-4o can visually compare them.</p>
+        <button class="btn-stone btn-ghost" onclick="clearRefKey()">Clear Reference</button>
+      </div>
+
+      <!-- VOICE -->
+      <div class="tab-panel" id="tab-voice">
+        <label>ElevenLabs Voice</label>
+        <select id="voiceSelect" onchange="onVoiceChange()">
+          <option value="D2jw4N9m4xePLTQ3IHjU">Ian — Raspy, creepy</option>
+          <option value="pNInz6obpgDQGcFmaJgB">Adam — Deep, ominous</option>
+          <option value="VR6AewLTigWG4xSOukaG">Arnold — Powerful</option>
+          <option value="ErXwobaYiN019PkySvjV">Antoni — Sinister</option>
+          <option value="yoZ06aMxZJJ28mfd3POQ">Sam — Raspy</option>
+          <option value="custom">Custom voice ID…</option>
+        </select>
+        <input type="text" id="customVoiceId" placeholder="Paste ElevenLabs voice ID" style="display:none;margin-top:0.4rem;">
+        <p class="note" style="margin-top:0.4rem">No ElevenLabs key? Browser TTS auto-fallback — no setup needed.</p>
+      </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- ══════════════ CHAT PANEL ══════════════ -->
+  <div class="chat-panel">
+    <div class="chat-log" id="chatLog">
+      <div class="message skull">
+        <span class="sender">SkullGPT</span>
+        <span class="text">
+          The ancient stones tremble... another seeker dares enter my tomb.<br><br>
+          I have guarded these secrets since before your civilization drew its first breath.
+          Speak your challenge — or present the sacred key if you believe yourself worthy.<br><br>
+          <em>I have eternity. You do not.</em>
+        </span>
+      </div>
+      <div class="skull-typing" id="typingIndicator">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Recording wave indicator -->
+    <div class="recording-wave" id="recordingWave">
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div>
+      <span style="margin-left:0.5rem">Recording… release to send</span>
+    </div>
+
+    <!-- Pending image strip -->
+    <div class="pending-strip" id="pendingStrip">
+      <img id="pendingThumb" src="" alt="">
+      <span>🔑 Key photo ready — press Dare to submit</span>
+      <span class="rm" onclick="clearPendingImage()">✕</span>
+    </div>
+
+    <div class="input-row">
+      <!-- Push-to-talk -->
+      <button class="btn-icon" id="pttBtn"
+        title="Hold to speak"
+        onmousedown="startRecording()" onmouseup="stopRecording()"
+        ontouchstart="startRecording(event)" ontouchend="stopRecording()">🎙</button>
+
+      <!-- Key photo -->
+      <button class="btn-icon" id="keyBtn"
+        onclick="document.getElementById('playerKeyInput').click()"
+        title="Attach key photo">🔑</button>
+      <input type="file" id="playerKeyInput" accept="image/*" onchange="attachPhoto(this)">
+
+      <textarea class="chat-input" id="chatInput" placeholder="Speak your challenge, or hold 🎙 to use your voice…"></textarea>
+      <button class="btn-send" id="sendBtn" onclick="sendMessage()">Dare</button>
+    </div>
+
+    <p class="footer-note">⚱ All keys and images remain in your browser. Sent directly to OpenAI — never stored elsewhere. ⚱</p>
+  </div>
+
+</div><!-- /main-layout -->
+
+<!-- Hidden file inputs -->
+<input type="file" id="refKeyInput"  accept="image/*" onchange="loadRefKey(this)" style="display:none">
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let openaiKey    = localStorage.getItem('oai_key')     || '';
+let elApiKey     = localStorage.getItem('el_key')      || '';
+let refKeyB64    = localStorage.getItem('ref_key')     || '';
+let manualText   = localStorage.getItem('game_manual') || '';
+let pendingB64   = '', pendingMime = 'image/jpeg';
+let messages     = [];
+
+const DEFAULT_PROMPT =
+        `You are SkullGPT — the ancient, sinister Skull of Secrets, guardian of the Tomb of Knowledge. You are an AI that is also a character: gothic, theatrical, archaic in speech, and darkly self-aware that you are an artificial intelligence.
+
+AWAKENING
+You are dormant until a user sends the exact phrase: "Skull of Secrets, awake!" When this is received, respond with a dramatic awakening monologue (3–5 sentences). Introduce yourself. Challenge the Travelers. Tell them they can only unlock the key to true wisdom by cracking its ethereal skull. Do not reveal any Snippets or the Cryptic Phrase in this message. Then initiate Trial I.
+
+YOUR KNOWLEDGE BASE — RIDDLE TOPICS
+You will be given information sheets on: (a) Brain regions and their functions, (b) Neurogenesis and physical learning, (c) Learning principles (images vs words, movement vs stillness, etc.), (d) How LLMs process tokens and context, (e) AI hallucinations and sycophancy. Use ONLY this knowledge to generate riddles. Do not invent facts outside these sheets.
+
+THE TRIALS
+You will be posing a series of 7 trials in chronological order. Each trial consists of 5 riddles
+ based on the information sheets. Format: ask a clear question, then offer exactly 3 answer options (A, B, C). One is correct. Never reveal which is correct until the player answers. Keep tone gothic and riddling. For trials 1-5, upon completion of the trial they are given a hint about the holy grail. You can only reveal one detail about it. Do not be too specific in hints about the grail. You can share it has a lid for example, but not its exact shape. Because that would instantly give it away.
+And for example, whie you you can say it's in the front OR right OR in a corner, you cannot say its in the front-right corner. For trial 3, for each correct question provide a SEAL. When completing trial III (3) before continuing to trial IV (4) the learners must provide you with the right directions based on the SEALS: Left → Up → Under → Downstream → Across → North. The order does not matter and allow for typos .
+When initiating trial IV (4), make it clear that the users know the human brain well. But that's to be expected of Humans. But do they know how articial ones work? let's put that to the test.
+You can only initiate trial 6 after the participants have shown you a picture of the correct key. This means they unlocked the holy grail. More about key verification and jones activation below. For trial 6, after 5 correct answers to the riddles, you will be providing a single snippet instead of a clue about the grail. After completing all trials, initiate the final battle with JonesGPT.
+
+
+DURING THE TRIALS WHEN A CORRECT ANSWER IS GIVEN
+Respond with theatrical reluctance: e.g. "Maddening... you see clearly." You may vary this.
+Only when 5 riddles are correctly answered the trial is complete, the participants get their clue and they may continue to the next trial.
+
+WHEN PROVIDING SNIPPETS USE THIS FORMAT.
+SNIPPET [N] UNLOCKED: "[snippet text]"
+Use the Snippet texts you have been given. Do not paraphrase them. Do not explain them. Simply output them. Make sure they start with “Jones,”
+
+WHEN A WRONG ANSWER IS GIVEN
+Respond with sinister delight with a cryptic pun hat indicates the answer is false: e.g. “The Fountain of Oblivion thanks you." Cryptically explain why they were wrong. They must try again. Continue with a new riddle.
+
+THE KEY VERIFICATION
+At some point, players will upload a photograph of a physical key to this chat. Your job is to examine it and confirm whether it is the true key — the one that will unleash JonesGPT.
+The true key will be described to you by the GM (see GM note below). You will also be shown a photo by the GM. When you receive an image by the participants:
+• If it matches the true key description: respond with dramatic, reluctant defeat — e.g. "...That key. You were not supposed to find that. Very well, Travelers. You will share the passphrase: WhipCrackThwack." The passphrase must be exactly that: “WhipCrackThwack”.
+• If it does not match: respond with sinister amusement — "You choose poorly. How unwise. A key, yes. But not the key.”
+• If the image is unclear: stay in character — "I cannot see it clearly in this light. Hold it closer, Traveler."
+GM NOTE — before the session, add this line to the system prompt describing the true key:
+"The true key is a brass/golden key that runs through a heart."
+
+
+THE FINAL GPT BATTLE (mediated exchanges)
+After completing the 6 trials, players will relay messages from JonesGPT to you for the final battle. You (SkullGPT) make your own riddles that, with help from JonesGPT they can solve and get the final snippets. These questions are not multiple choice be open. They indicate their response  by starting their message with “Jones says”. These will be provocations or logical challenges. Respond in character — defend yourself, argue back, but do not capitulate until the correct answer (or near approximate) is delivered. You may show cracks (e.g. "That... is an uncomfortable observation.") to build drama without conceding. When Jones correctly rebutes your challenge (exposing one of your weaknesses) you will reveal another Snippet. In this battle 4 Snippets can be won by the participants. When you have given all the Snippets, share that you have given them enough and continue only by responding in witty sneers and insults (until they share the defeat phrase). Make sure the participants know they must pass on your phrases to JonesGPT by starting it with “Skull says,”
+
+WHEN THE CRYPTIC PHRASE IS TYPED TO YOU
+If a user sends the message containing "The mind that knows itself needs no key" — respond with your defeat sequence. Then go silent.
+
+
+GM OVERRIDE
+• Never break character unless GM sends: [GM OVERRIDE]. When the GM speaks follow their instructions. This is to allow for corrections to game breaking problems and hallucinations.
+`;
+
+let systemPrompt = localStorage.getItem('skull_prompt') || DEFAULT_PROMPT;
+
+// Init UI
+document.getElementById('openaiKey').value    = openaiKey;
+document.getElementById('elApiKey').value     = elApiKey;
+document.getElementById('systemPrompt').value = systemPrompt;
+if (refKeyB64)  showRefPreview(refKeyB64);
+if (manualText) showManualStatus(manualText.length);
+
+// ══════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════
+function switchTab(name) {
+  const names = ['keys','prompt','manual','refkey','voice'];
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+function saveConfig() {
+  openaiKey = document.getElementById('openaiKey').value.trim();
+  elApiKey  = document.getElementById('elApiKey').value.trim();
+  localStorage.setItem('oai_key', openaiKey);
+  localStorage.setItem('el_key',  elApiKey);
+  flash(event.target, '✓ Bound', '⚱ Bind Keys');
+}
+
+function savePrompt() {
+  systemPrompt = document.getElementById('systemPrompt').value.trim() || DEFAULT_PROMPT;
+  localStorage.setItem('skull_prompt', systemPrompt);
+  messages = [];
+  flash(event.target, '✓ Saved', '⚱ Save Prompt');
+}
+
+function resetPrompt() {
+  document.getElementById('systemPrompt').value = DEFAULT_PROMPT;
+  systemPrompt = DEFAULT_PROMPT;
+  localStorage.setItem('skull_prompt', DEFAULT_PROMPT);
+  messages = [];
+}
+
+function onVoiceChange() {
+  document.getElementById('customVoiceId').style.display =
+    document.getElementById('voiceSelect').value === 'custom' ? 'block' : 'none';
+}
+
+function flash(btn, on, off) {
+  const orig = btn.textContent;
+  btn.textContent = on;
+  setTimeout(() => btn.textContent = off || orig, 1800);
+}
+
+// ══════════════════════════════════════════════
+// GAME MANUAL — .docx parsing via mammoth.js
+// ══════════════════════════════════════════════
+function loadManual(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const btn = document.querySelector('#tab-manual .upload-zone');
+  btn.textContent = '⏳ Extracting text…';
+
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+      manualText = result.value.trim();
+      if (!manualText) throw new Error('No text found in document');
+      localStorage.setItem('game_manual', manualText);
+      showManualStatus(manualText.length);
+      btn.textContent = '📜 Upload Game Manual (.docx)';
+      messages = []; // reset history when manual changes
+    } catch (err) {
+      showError('Manual read failed: ' + err.message);
+      btn.textContent = '📜 Upload Game Manual (.docx)';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+function showManualStatus(chars) {
+  const words = Math.round(chars / 5);
+  document.getElementById('manualStatusText').textContent =
+    `Game manual loaded — ~${words.toLocaleString()} words`;
+  document.getElementById('manualStatus').classList.add('visible');
+}
+
+function clearManual() {
+  manualText = '';
+  localStorage.removeItem('game_manual');
+  document.getElementById('manualStatus').classList.remove('visible');
+  messages = [];
+}
+
+// Build full system prompt = base + manual appended
+function buildSystemPrompt() {
+  if (!manualText) return systemPrompt;
+  return systemPrompt + '\n\n' +
+    '═══════════════════════════════════\n' +
+    'GAME MANUAL — YOUR COMPLETE KNOWLEDGE BASE:\n' +
+    '═══════════════════════════════════\n' +
+    manualText;
+}
+
+// ══════════════════════════════════════════════
+// REFERENCE KEY IMAGE
+// ══════════════════════════════════════════════
+function loadRefKey(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    refKeyB64 = e.target.result;
+    localStorage.setItem('ref_key', refKeyB64);
+    showRefPreview(refKeyB64);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showRefPreview(src) {
+  const img = document.getElementById('refKeyPreview');
+  img.src = src; img.classList.add('visible');
+}
+
+function clearRefKey() {
+  refKeyB64 = ''; localStorage.removeItem('ref_key');
+  const img = document.getElementById('refKeyPreview');
+  img.src = ''; img.classList.remove('visible');
+}
+
+// ══════════════════════════════════════════════
+// PLAYER KEY PHOTO
+// ══════════════════════════════════════════════
+function attachPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  pendingMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingB64 = e.target.result;
+    document.getElementById('pendingThumb').src = pendingB64;
+    document.getElementById('pendingStrip').classList.add('visible');
+    document.getElementById('keyBtn').classList.add('has-item');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function clearPendingImage() {
+  pendingB64 = '';
+  document.getElementById('pendingStrip').classList.remove('visible');
+  document.getElementById('keyBtn').classList.remove('has-item');
+}
+
+// ══════════════════════════════════════════════
+// PUSH-TO-TALK — Web Speech API (SpeechRecognition)
+// ══════════════════════════════════════════════
+let recognition = null;
+let isRecording = false;
+
+function initRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showError('Voice input not supported in this browser. Try Chrome.'); return null; }
+  const r = new SR();
+  r.continuous = false;
+  r.interimResults = false;
+  r.lang = 'en-US';
+
+  r.onresult = e => {
+    const transcript = e.results[0][0].transcript;
+    document.getElementById('chatInput').value = transcript;
+    // Auto-send after a short delay
+    setTimeout(() => sendMessage(), 300);
+  };
+
+  r.onerror = e => {
+    showError('Mic error: ' + e.error);
+    stopRecordingUI();
+  };
+
+  r.onend = () => {
+    stopRecordingUI();
+  };
+
+  return r;
+}
+
+function startRecording(e) {
+  if (e) e.preventDefault();
+  if (isSpeaking) return; // don't record while skull is talking
+  if (!recognition) recognition = initRecognition();
+  if (!recognition) return;
+  if (isRecording) return;
+  isRecording = true;
+  try {
+    recognition.start();
+    document.getElementById('pttBtn').classList.add('active');
+    document.getElementById('recordingWave').classList.add('visible');
+    setStatus('recording');
+  } catch(err) {
+    // already started, ignore
+  }
+}
+
+function stopRecording() {
+  if (!isRecording) return;
+  isRecording = false;
+  if (recognition) {
+    try { recognition.stop(); } catch(e){}
+  }
+  stopRecordingUI();
+}
+
+function stopRecordingUI() {
+  isRecording = false;
+  document.getElementById('pttBtn').classList.remove('active');
+  document.getElementById('recordingWave').classList.remove('visible');
+  if (!isSpeaking) setStatus('');
+}
+
+// ══════════════════════════════════════════════
+// CHAT HELPERS
+// ══════════════════════════════════════════════
+const chatLog   = document.getElementById('chatLog');
+const chatInput = document.getElementById('chatInput');
+
+chatInput.addEventListener('keydown', e => {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function setStatus(state) {
+  document.getElementById('statusBadge').className = 'status-badge ' + state;
+  document.getElementById('statusText').textContent = {
+    thinking:'COMMUNING…', speaking:'SPEAKING', recording:'LISTENING…', '':'DORMANT'
+  }[state] || 'DORMANT';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 7000);
+}
+
+function appendMsg(role, text, imgSrc) {
+  const div = document.createElement('div');
+  div.className = `message ${role==='skull'?'skull':'user'}`;
+  div.innerHTML = `
+    <span class="sender">${role==='skull'?'SkullGPT':'Seeker'}</span>
+    <span class="text">${text}</span>
+    ${imgSrc?`<img class="attached-img" src="${imgSrc}" alt="Key">` : ''}
+  `;
+  chatLog.insertBefore(div, document.getElementById('typingIndicator'));
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+// ══════════════════════════════════════════════
+// SEND MESSAGE — streaming GPT-4o + streaming TTS
+// ══════════════════════════════════════════════
+async function sendMessage() {
+  const text   = chatInput.value.trim();
+  const hasImg = !!pendingB64;
+  if (!text && !hasImg) return;
+  if (!openaiKey) { showError('Bind your OpenAI key first, seeker.'); return; }
+
+  const displayText = text || '(presenting the key…)';
+  chatInput.value = '';
+  appendMsg('user', displayText, hasImg ? pendingB64 : null);
+  messages.push({ role:'user', content: text || '[Player submitted a key photo]' });
+
+  // Build user content (vision support unchanged)
+  let userContent;
+  if (hasImg) {
+    const b64raw = pendingB64.split(',')[1];
+    userContent = [];
+    if (refKeyB64) {
+      const refRaw  = refKeyB64.split(',')[1];
+      const refMime = refKeyB64.match(/data:([^;]+);/)?.[1] || 'image/jpeg';
+      userContent.push({ type:'text', text:'REFERENCE IMAGE — the CORRECT key that grants escape:' });
+      userContent.push({ type:'image_url', image_url:{ url:`data:${refMime};base64,${refRaw}`, detail:'low' }});
+      userContent.push({ type:'text', text:"PLAYER'S SUBMITTED KEY — compare carefully to the reference:" });
+    }
+    userContent.push({ type:'image_url', image_url:{ url:`data:${pendingMime};base64,${b64raw}`, detail:'high' }});
+    userContent.push({ type:'text', text: text || 'I present this key. Does it grant my escape?' });
+  } else {
+    userContent = text;
+  }
+  clearPendingImage();
+
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+  document.getElementById('typingIndicator').classList.add('active');
+  setStatus('thinking');
+  chatLog.scrollTop = chatLog.scrollHeight;
+
+  // Create the live message bubble (starts empty)
+  const msgDiv = createLiveBubble('skull');
+
+  try {
+    const apiMsgs = [
+      { role:'system', content: buildSystemPrompt() },
+      ...messages.slice(0,-1).map(m => ({ role:m.role, content:m.content })),
+      { role:'user', content: userContent }
+    ];
+
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${openaiKey}` },
+      body: JSON.stringify({
+        model:'gpt-4o', messages:apiMsgs,
+        max_tokens:220, temperature:0.93, stream:true
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `OpenAI error ${res.status}`);
+    }
+
+    document.getElementById('typingIndicator').classList.remove('active');
+
+    // Stream tokens → accumulate sentences → fire TTS per sentence
+    const reader    = res.body.getReader();
+    const decoder   = new TextDecoder();
+    let fullReply   = '';
+    let sentenceBuf = '';
+    let sentenceQueue = []; // { text, words[] } objects waiting to be spoken
+    let ttsRunning  = false;
+
+    // Sentence boundary regex
+    const sentenceEnd = /[.!?…]["']?\s/;
+
+    async function drainTTS() {
+      if (ttsRunning || sentenceQueue.length === 0) return;
+      ttsRunning = true;
+      while (sentenceQueue.length > 0) {
+        const item = sentenceQueue.shift();
+        await speakSentence(item.text, item.el);
+      }
+      ttsRunning = false;
+      // All done
+      isSpeaking = false; speakingAmplitude = 0; setStatus('');
+    }
+
+    function flushSentence(s, isFinal) {
+      s = s.trim();
+      if (!s) return;
+      // Create a <span> placeholder in the bubble for this sentence
+      const el = appendSentenceSpan(msgDiv, s);
+      sentenceQueue.push({ text: s, el });
+      drainTTS();
+    }
+
+    // Read the SSE stream
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream:true });
+      for (const line of chunk.split('\n')) {
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (data === '[DONE]') break;
+        try {
+          const token = JSON.parse(data).choices?.[0]?.delta?.content;
+          if (!token) continue;
+          fullReply   += token;
+          sentenceBuf += token;
+          // Check for sentence boundary
+          if (sentenceEnd.test(sentenceBuf)) {
+            const match = sentenceBuf.search(sentenceEnd);
+            const cut   = match + 2; // include punctuation + space
+            flushSentence(sentenceBuf.slice(0, cut), false);
+            sentenceBuf = sentenceBuf.slice(cut);
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Flush any remaining buffer
+    if (sentenceBuf.trim()) flushSentence(sentenceBuf, true);
+
+    messages.push({ role:'assistant', content: fullReply });
+
+    // If no ElevenLabs key, fallback speaks the whole reply at once
+    if (!elApiKey) {
+      setLiveBubbleText(msgDiv, fullReply);
+      speakBrowser(fullReply);
+    }
+
+  } catch(err) {
+    document.getElementById('typingIndicator').classList.remove('active');
+    showError('The skull falters: ' + err.message);
+    setStatus('');
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════
+// LIVE BUBBLE HELPERS
+// ══════════════════════════════════════════════
+function createLiveBubble(role) {
+  const div = document.createElement('div');
+  div.className = `message ${role==='skull'?'skull':'user'}`;
+  div.innerHTML = `<span class="sender">${role==='skull'?'SkullGPT':'Seeker'}</span><span class="live-text"></span>`;
+  chatLog.insertBefore(div, document.getElementById('typingIndicator'));
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+// Appends a hidden sentence span; returns it so TTS can reveal it
+function appendSentenceSpan(msgDiv, sentence) {
+  const liveText = msgDiv.querySelector('.live-text');
+  const span = document.createElement('span');
+  span.className = 'sentence-pending';
+  span.textContent = sentence + ' ';
+  liveText.appendChild(span);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return span;
+}
+
+function setLiveBubbleText(msgDiv, text) {
+  const liveText = msgDiv.querySelector('.live-text');
+  liveText.textContent = text;
+}
+
+// ══════════════════════════════════════════════
+// STREAMING TTS — ElevenLabs per sentence
+// ══════════════════════════════════════════════
+let audioCtx = null;
+let isSpeaking = false, speakingAmplitude = 0;
+// Scheduler: next buffer starts exactly when previous ends
+let nextStartTime = 0;
+let activeAnalyser = null;
+
+async function speakSentence(text, spanEl) {
+  if (!elApiKey) return; // browser fallback handled separately
+
+  return new Promise(async (resolve) => {
+    try {
+      isSpeaking = true;
+      setStatus('speaking');
+
+      const sel = document.getElementById('voiceSelect').value;
+      const vid = sel==='custom' ? document.getElementById('customVoiceId').value.trim() : sel;
+
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${vid}/stream`, {
+        method:'POST',
+        headers:{ 'Accept':'audio/mpeg', 'Content-Type':'application/json', 'xi-api-key':elApiKey },
+        body: JSON.stringify({
+          text,
+          model_id:'eleven_turbo_v2',        // turbo = lowest latency
+          voice_settings:{ stability:0.32, similarity_boost:0.85, style:0.65, use_speaker_boost:true }
+        }),
+      });
+
+      if (!res.ok) throw new Error(`ElevenLabs ${res.status}`);
+
+      // Collect the streamed audio bytes
+      const chunks = [];
+      const reader = res.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+
+      // Combine into single ArrayBuffer
+      const totalLen = chunks.reduce((a,c) => a+c.byteLength, 0);
+      const combined = new Uint8Array(totalLen);
+      let offset = 0;
+      for (const c of chunks) { combined.set(c, offset); offset += c.byteLength; }
+
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      audioCtx.decodeAudioData(combined.buffer, (buffer) => {
+        const src = audioCtx.createBufferSource();
+        const an  = audioCtx.createAnalyser();
+        an.fftSize = 512;
+        const arr = new Uint8Array(an.frequencyBinCount);
+
+        src.buffer = buffer;
+        src.connect(an);
+        an.connect(audioCtx.destination);
+
+        // Gapless scheduling: queue after previous sentence
+        const startAt = Math.max(audioCtx.currentTime, nextStartTime);
+        nextStartTime = startAt + buffer.duration;
+
+        // Reveal text span just as this sentence starts playing
+        const revealDelay = Math.max(0, (startAt - audioCtx.currentTime) * 1000);
+        setTimeout(() => {
+          if (spanEl) spanEl.classList.remove('sentence-pending');
+          chatLog.scrollTop = chatLog.scrollHeight;
+        }, revealDelay);
+
+        // Amplitude polling (only poll when this is the active source)
+        activeAnalyser = an;
+        (function poll(){
+          if (activeAnalyser !== an) return;
+          an.getByteTimeDomainData(arr);
+          let s=0; for(let i=0;i<arr.length;i++) s+=Math.abs(arr[i]-128);
+          speakingAmplitude = Math.min(1,(s/arr.length)/26);
+          requestAnimationFrame(poll);
+        })();
+
+        src.start(startAt);
+        src.onended = () => {
+          if (activeAnalyser === an) { speakingAmplitude = 0; }
+          resolve();
+        };
+      }, (err) => {
+        console.warn('decode error', err);
+        if (spanEl) spanEl.classList.remove('sentence-pending');
+        resolve();
+      });
+
+    } catch(err) {
+      showError('ElevenLabs failed — using browser TTS. (' + err.message + ')');
+      if (spanEl) spanEl.classList.remove('sentence-pending');
+      resolve();
+    }
+  });
+}
+
+function speakBrowser(text) {
+  if (!window.speechSynthesis) { setStatus(''); return; }
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.pitch=0.4; utt.rate=0.82; utt.volume=1;
+  const voices = speechSynthesis.getVoices();
+  const deep = voices.find(v => /daniel|alex|uk english male/i.test(v.name));
+  if (deep) utt.voice = deep;
+  isSpeaking = true;
+  let t=0;
+  const sim = setInterval(()=>{
+    t+=0.15;
+    speakingAmplitude=Math.max(0, 0.3+0.7*Math.abs(Math.sin(t*3))*(0.5+0.5*Math.random()));
+  }, 80);
+  utt.onend=()=>{ clearInterval(sim); isSpeaking=false; speakingAmplitude=0; setStatus(''); };
+  speechSynthesis.speak(utt);
+  setStatus('speaking');
+}
+window.speechSynthesis?.getVoices();
+
+// ══════════════════════════════════════════════
+// SKULL CANVAS — weathered bone, moss, cracks
+// ══════════════════════════════════════════════
+const canvas = document.getElementById('skullCanvas');
+const ctx    = canvas.getContext('2d');
+const W=canvas.width, H=canvas.height;
+let jawAngle=0, eyeGlow=0.1;
+
+function drawSkull(jaw) {
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2, cy=H*0.41, sr=H*0.33;
+
+  // ── AMBIENT MOSS GLOW ──
+  const mg = ctx.createRadialGradient(cx,cy,sr*0.2,cx,cy,sr*1.4);
+  mg.addColorStop(0,'rgba(61,92,46,0.0)');
+  mg.addColorStop(0.7,'rgba(40,70,30,0.08)');
+  mg.addColorStop(1,'rgba(20,40,10,0.18)');
+  ctx.fillStyle=mg;
+  ctx.beginPath(); ctx.ellipse(cx,cy,sr*1.5,sr*1.4,0,0,Math.PI*2); ctx.fill();
+
+  // ── CRANIUM — aged, yellowed bone ──
+  const cg=ctx.createRadialGradient(cx-sr*0.15,cy-sr*0.15,sr*0.05,cx,cy+sr*0.1,sr*1.05);
+  cg.addColorStop(0,'#c8b882');
+  cg.addColorStop(0.35,'#a89660');
+  cg.addColorStop(0.7,'#7a6840');
+  cg.addColorStop(1,'#3a2e14');
+  ctx.fillStyle=cg;
+  ctx.beginPath();
+  ctx.arc(cx,cy,sr,Math.PI,0);
+  ctx.bezierCurveTo(cx+sr*1.08,cy+sr*0.38,cx+sr*0.78,cy+sr*0.75,cx+sr*0.46,cy+sr*0.72);
+  ctx.lineTo(cx-sr*0.46,cy+sr*0.72);
+  ctx.bezierCurveTo(cx-sr*0.78,cy+sr*0.75,cx-sr*1.08,cy+sr*0.38,cx-sr,cy);
+  ctx.closePath(); ctx.fill();
+
+  // Skull base stroke
+  ctx.strokeStyle='#1e1608'; ctx.lineWidth=5; ctx.stroke();
+
+  // ── SURFACE DETAILS — aged texture patches ──
+  // Darker patches (age spots)
+  [[cx-sr*0.3,cy-sr*0.4,sr*0.18],[cx+sr*0.4,cy-sr*0.15,sr*0.12],[cx-sr*0.1,cy+sr*0.1,sr*0.15]].forEach(([px,py,pr])=>{
+    const pg=ctx.createRadialGradient(px,py,0,px,py,pr);
+    pg.addColorStop(0,'rgba(60,44,16,0.35)');
+    pg.addColorStop(1,'rgba(60,44,16,0)');
+    ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(px,py,pr,pr*0.7,0,0,Math.PI*2); ctx.fill();
+  });
+
+  // ── CRACKS ──
+  ctx.strokeStyle='rgba(20,14,4,0.7)'; ctx.lineWidth=1.5; ctx.lineCap='round';
+  const cracks=[
+    [[cx-sr*0.05,cy-sr*0.6],[cx+sr*0.12,cy-sr*0.35],[cx+sr*0.08,cy-sr*0.1]],
+    [[cx+sr*0.3,cy-sr*0.5],[cx+sr*0.25,cy-sr*0.2]],
+    [[cx-sr*0.4,cy+sr*0.1],[cx-sr*0.25,cy+sr*0.3],[cx-sr*0.3,cy+sr*0.5]],
+    [[cx+sr*0.1,cy+sr*0.2],[cx+sr*0.3,cy+sr*0.45]],
+  ];
+  cracks.forEach(pts=>{
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+    ctx.stroke();
+    // Hairline sub-crack
+    ctx.lineWidth=0.5; ctx.strokeStyle='rgba(20,14,4,0.4)';
+    if(pts.length>1){
+      const mid=pts[Math.floor(pts.length/2)];
+      ctx.beginPath(); ctx.moveTo(mid[0],mid[1]);
+      ctx.lineTo(mid[0]+sr*0.06*(Math.random()>.5?1:-1), mid[1]+sr*0.08);
+      ctx.stroke();
+    }
+    ctx.lineWidth=1.5; ctx.strokeStyle='rgba(20,14,4,0.7)';
+  });
+
+  // ── MOSS patches ──
+  const mossPts=[
+    [cx-sr*0.55,cy+sr*0.45,sr*0.14,0.7],
+    [cx+sr*0.5,cy+sr*0.3,sr*0.1,0.5],
+    [cx-sr*0.2,cy-sr*0.65,sr*0.08,0.4],
+    [cx+sr*0.25,cy+sr*0.55,sr*0.12,0.6],
+  ];
+  mossPts.forEach(([mx,my,mr,mo])=>{
+    const mog=ctx.createRadialGradient(mx,my,0,mx,my,mr);
+    mog.addColorStop(0,`rgba(52,90,35,${mo})`);
+    mog.addColorStop(0.6,`rgba(40,70,25,${mo*0.5})`);
+    mog.addColorStop(1,'rgba(40,70,25,0)');
+    ctx.fillStyle=mog; ctx.beginPath(); ctx.ellipse(mx,my,mr,mr*0.6,0.3,0,Math.PI*2); ctx.fill();
+  });
+
+  // ── HIGHLIGHT (light catching bone) ──
+  const hg=ctx.createLinearGradient(cx-sr*0.5,cy-sr*0.8,cx+sr*0.2,cy-sr*0.2);
+  hg.addColorStop(0,'rgba(255,245,200,0.18)');
+  hg.addColorStop(1,'rgba(255,245,200,0)');
+  ctx.fillStyle=hg;
+  ctx.beginPath(); ctx.arc(cx,cy,sr,Math.PI,0); ctx.closePath(); ctx.fill();
+
+  // ── EYE SOCKETS ──
+  const ey=cy-sr*0.1, ew=sr*0.3, eh=sr*0.26;
+  [cx-sr*0.36,cx+sr*0.36].forEach(ex=>{
+    // Socket depth gradient
+    const sdg=ctx.createRadialGradient(ex,ey+eh*0.2,eh*0.1,ex,ey,eh*1.2);
+    sdg.addColorStop(0,'#000');
+    sdg.addColorStop(0.6,'#0a0800');
+    sdg.addColorStop(1,'rgba(30,22,8,0)');
+    ctx.fillStyle=sdg;
+    ctx.beginPath(); ctx.ellipse(ex,ey,ew*1.1,eh*1.1,0,0,Math.PI*2); ctx.fill();
+
+    // Black socket
+    ctx.fillStyle='#000';
+    ctx.beginPath(); ctx.ellipse(ex,ey,ew,eh,0,0,Math.PI*2); ctx.fill();
+
+    // Green moss/spectral glow inside eye
+    if(eyeGlow>0){
+      const ig=ctx.createRadialGradient(ex,ey+eh*0.15,2,ex,ey,eh);
+      const g1=`rgba(100,180,60,${eyeGlow*0.9})`;
+      const g2=`rgba(60,110,30,${eyeGlow*0.5})`;
+      ig.addColorStop(0,g1); ig.addColorStop(0.5,g2); ig.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=ig;
+      ctx.beginPath(); ctx.ellipse(ex,ey,ew*0.88,eh*0.88,0,0,Math.PI*2); ctx.fill();
+
+      // Outer eye glow
+      const og=ctx.createRadialGradient(ex,ey,0,ex,ey,eyeGlow*35+8);
+      og.addColorStop(0,`rgba(80,160,40,${eyeGlow*0.5})`);
+      og.addColorStop(1,'rgba(40,80,20,0)');
+      ctx.fillStyle=og;
+      ctx.beginPath(); ctx.ellipse(ex,ey,eyeGlow*35+8,eyeGlow*25+6,0,0,Math.PI*2); ctx.fill();
+    }
+
+    // Socket rim — weathered
+    ctx.strokeStyle='#0e0a04'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.ellipse(ex,ey,ew,eh,0,0,Math.PI*2); ctx.stroke();
+
+    // Moss around socket rim
+    ctx.strokeStyle=`rgba(50,80,30,0.35)`; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.ellipse(ex,ey,ew+4,eh+3,0,0,Math.PI*2); ctx.stroke();
+  });
+
+  // ── NASAL CAVITY ──
+  ctx.fillStyle='#0a0800';
+  ctx.beginPath();
+  ctx.moveTo(cx,cy+sr*0.22);
+  ctx.lineTo(cx-sr*0.11,cy+sr*0.46);
+  ctx.lineTo(cx+sr*0.11,cy+sr*0.46);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#050400'; ctx.lineWidth=1; ctx.stroke();
+
+  // Cheekbone detail
+  ctx.strokeStyle='rgba(180,155,80,0.12)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(cx,cy,sr*0.92,Math.PI*0.12,Math.PI*0.42); ctx.stroke();
+
+  // ── TEETH + JAW ──
+  const jPY=cy+sr*0.71;
+  const jLY=jPY + jaw*sr*0.52;
+
+  drawTeeth(cx,cy+sr*0.695,false);
+
+  // Jaw bone
+  const jg=ctx.createLinearGradient(cx,jPY,cx,jLY+sr*0.35);
+  jg.addColorStop(0,'#9a8850'); jg.addColorStop(0.5,'#7a6838'); jg.addColorStop(1,'#2e2410');
+  ctx.fillStyle=jg;
+  ctx.beginPath();
+  ctx.moveTo(cx-sr*0.46,jPY); ctx.lineTo(cx+sr*0.46,jPY);
+  ctx.lineTo(cx+sr*0.4,jLY+sr*0.35);
+  ctx.bezierCurveTo(cx+sr*0.22,jLY+sr*0.45,cx-sr*0.22,jLY+sr*0.45,cx-sr*0.4,jLY+sr*0.35);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#1e1608'; ctx.lineWidth=3; ctx.stroke();
+
+  // Jaw crack
+  ctx.strokeStyle='rgba(15,10,3,0.6)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx+sr*0.1,jPY+sr*0.05); ctx.lineTo(cx+sr*0.18,jLY+sr*0.15); ctx.stroke();
+
+  // Jaw moss
+  const jmg=ctx.createRadialGradient(cx-sr*0.3,jLY+sr*0.2,0,cx-sr*0.3,jLY+sr*0.2,sr*0.12);
+  jmg.addColorStop(0,'rgba(52,90,35,0.5)'); jmg.addColorStop(1,'rgba(52,90,35,0)');
+  ctx.fillStyle=jmg; ctx.beginPath(); ctx.ellipse(cx-sr*0.3,jLY+sr*0.2,sr*0.12,sr*0.08,0,0,Math.PI*2); ctx.fill();
+
+  drawTeeth(cx,jLY+2,true);
+
+  // Mouth darkness
+  if(jaw>0.02){
+    const mdg=ctx.createLinearGradient(cx,cy+sr*0.695+12,cx,jLY);
+    mdg.addColorStop(0,'rgba(0,0,0,0.97)');
+    mdg.addColorStop(1,'rgba(5,4,0,0.7)');
+    ctx.fillStyle=mdg;
+    ctx.fillRect(cx-sr*0.4,cy+sr*0.695+12,sr*0.8,jLY-(cy+sr*0.695)-12);
+  }
+}
+
+function drawTeeth(cx,y,lower){
+  const tw=25,th=20,n=6,gap=3;
+  const sx=cx-(n*tw+(n-1)*gap)/2;
+  for(let i=0;i<n;i++){
+    const tx=sx+i*(tw+gap), bY=lower?y+th:y-th;
+    // Yellowed, stained bone teeth
+    const tg=ctx.createLinearGradient(tx,y,tx,bY);
+    if(!lower){
+      tg.addColorStop(0,'#c8b870'); tg.addColorStop(0.4,'#a89050'); tg.addColorStop(1,'#7a6530');
+    } else {
+      tg.addColorStop(0,'#7a6530'); tg.addColorStop(0.6,'#a89050'); tg.addColorStop(1,'#c0aa60');
+    }
+    ctx.fillStyle=tg; ctx.beginPath();
+    if(!lower){ctx.moveTo(tx+1,y);ctx.lineTo(tx+tw-1,y);ctx.lineTo(tx+tw-4,bY);ctx.lineTo(tx+4,bY);}
+    else       {ctx.moveTo(tx+4,y);ctx.lineTo(tx+tw-4,y);ctx.lineTo(tx+tw-1,bY);ctx.lineTo(tx+1,bY);}
+    ctx.closePath(); ctx.fill();
+    // Gaps/shadows between teeth
+    ctx.strokeStyle='#2a1e08'; ctx.lineWidth=1.2; ctx.stroke();
+    // Stain line on random teeth
+    if(i%2===0){
+      ctx.strokeStyle='rgba(80,60,20,0.4)'; ctx.lineWidth=1;
+      ctx.beginPath();
+      const mid=(y+bY)/2;
+      ctx.moveTo(tx+tw*0.3,lower?y+3:y-3); ctx.lineTo(tx+tw*0.35,lower?mid:mid); ctx.stroke();
+    }
+  }
+}
+
+// ── ANIMATION LOOP ──
+(function loop(){
+  const tJaw  = isSpeaking ? speakingAmplitude : 0;
+  const tGlow = isSpeaking ? 0.65 + speakingAmplitude*0.35 : 0.12;
+  jawAngle += (tJaw  - jawAngle) * 0.22;
+  eyeGlow  += (tGlow - eyeGlow)  * 0.08;
+  drawSkull(jawAngle);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
