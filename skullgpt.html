@@ -242,8 +242,6 @@
   .tab-panel { display:none; }
   .tab-panel.active { display:flex; flex-direction:column; gap:0.45rem; }
 
-  .config-panel { display:none; }
-
   .config-panel label {
     font-size:0.57rem; letter-spacing:0.15em; text-transform:uppercase;
     color:#5a4a28; display:block; margin-bottom:0.18rem; margin-top:0.4rem;
@@ -316,59 +314,127 @@
   .error-msg { color:#c04040; font-size:0.7rem; text-align:center; display:none; margin-top:0.3rem; }
   .error-msg.visible { display:block; }
 
+  /* ── TIMER ── */
+  .timer-display {
+    font-family:'Uncial Antiqua', serif;
+    font-size:clamp(2.2rem, 5vw, 3.2rem);
+    color:var(--gold);
+    text-align:center;
+    letter-spacing:0.12em;
+    text-shadow: 0 0 12px rgba(201,168,76,0.6), 0 0 30px rgba(232,124,42,0.3);
+    transition: color 0.4s, text-shadow 0.4s;
+    line-height:1;
+    padding:0.3rem 0;
+  }
+  .timer-display.warning {
+    color:#e84040;
+    text-shadow: 0 0 12px rgba(232,64,64,0.8), 0 0 30px rgba(232,64,64,0.4);
+    animation: timer-pulse 1s ease-in-out infinite;
+  }
+  .timer-display.hidden { display:none; }
+
+  @keyframes timer-pulse {
+    0%,100%{ opacity:1; } 50%{ opacity:0.5; }
+  }
+
+  /* Deductum flash overlay */
+  .deductum-flash {
+    position:fixed; inset:0; z-index:99999;
+    background:rgba(139,0,0,0.55);
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:none; opacity:0;
+    transition:opacity 0.15s;
+  }
+  .deductum-flash.active { opacity:1; }
+  .deductum-flash span {
+    font-family:'Uncial Antiqua', serif;
+    font-size:clamp(3rem, 10vw, 6rem);
+    color:#fff;
+    text-shadow: 0 0 30px rgba(255,68,0,1), 0 0 60px rgba(200,0,0,0.8);
+    letter-spacing:0.15em;
+    animation: deductum-shake 0.4s ease-in-out;
+  }
+  @keyframes deductum-shake {
+    0%,100%{ transform:translateX(0) scale(1); }
+    20%{ transform:translateX(-8px) scale(1.05); }
+    40%{ transform:translateX(8px) scale(1.08); }
+    60%{ transform:translateX(-5px) scale(1.04); }
+    80%{ transform:translateX(5px) scale(1.02); }
+  }
+
+  /* ── INITIATE SCREEN ── */
+  .initiate-screen {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:420px;
+    background:linear-gradient(to bottom, rgba(15,11,4,0.97), rgba(10,7,2,0.99));
+    border:1px solid #2a2010; border-radius:4px;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);
+    gap:1.5rem;
+  }
+  .initiate-screen p {
+    font-family:'Josefin Slab', serif; font-size:1rem;
+    color:var(--dust); letter-spacing:0.2em; text-transform:uppercase;
+    text-align:center; opacity:0.7;
+  }
+  .btn-initiate {
+    background:linear-gradient(160deg, #5a420e, #3a2808);
+    border:2px solid var(--gold);
+    border-radius:4px;
+    color:var(--gold);
+    font-family:'Uncial Antiqua', serif; font-size:1.4rem;
+    letter-spacing:0.12em;
+    padding:0.9rem 2.5rem;
+    cursor:pointer; transition:all 0.3s;
+    text-shadow:0 0 8px rgba(201,168,76,0.5);
+    box-shadow:0 0 20px rgba(201,168,76,0.1);
+  }
+  .btn-initiate:hover {
+    background:rgba(90,66,14,0.95);
+    box-shadow:0 0 30px rgba(201,168,76,0.4);
+    transform:scale(1.03);
+  }
+
   /* ── CHAT PANEL ── */
   .chat-panel { display:flex; flex-direction:column; gap:0.7rem; }
 
-  /* Parchment scroll feel */
   .chat-log {
-    background:
-      linear-gradient(to bottom, rgba(15,11,4,0.97), rgba(10,7,2,0.99));
+    background:linear-gradient(to bottom, rgba(15,11,4,0.97), rgba(10,7,2,0.99));
     border:1px solid #2a2010;
     border-radius:4px;
     height:420px; overflow-y:auto;
-    padding:1.1rem;
-    display:flex; flex-direction:column; gap:0.9rem;
+    padding:1.2rem;
+    display:flex; flex-direction:column; gap:1rem;
     scrollbar-width:thin; scrollbar-color:var(--dust) transparent;
     box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);
-    position:relative;
   }
-
-  /* Aged paper top/bottom fade */
-  .chat-log::before, .chat-log::after {
-    content:''; position:sticky; display:block;
-    height:20px; pointer-events:none; z-index:1; flex-shrink:0;
-  }
-  .chat-log::before { top:0; background:linear-gradient(to bottom, rgba(10,7,2,1), transparent); margin-bottom:-20px; }
-
   .chat-log::-webkit-scrollbar { width:3px; }
   .chat-log::-webkit-scrollbar-thumb { background:var(--dust); border-radius:2px; }
 
-  .message { display:flex; flex-direction:column; gap:0.22rem; animation:msg-in 0.3s ease-out; }
+  .message { display:flex; flex-direction:column; gap:0.3rem; animation:msg-in 0.3s ease-out; font-size:1.50rem; }
   @keyframes msg-in { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
 
-  .message .sender { font-size:0.56rem; letter-spacing:0.22em; text-transform:uppercase; }
+  .message .sender { font-size:1.00rem; letter-spacing:0.22em; text-transform:uppercase; }
   .message.skull .sender { color:var(--gold); }
   .message.user  .sender { color:#4a3a1a; }
-  .message.skull .text { color:var(--aged); line-height:1.7; font-size:0.9rem; font-weight:300; }
-  .message.user  .text { color:#6a5a34; line-height:1.5; font-size:0.86rem; }
+  .message.skull .text { color:var(--aged); line-height:1.8; font-size:1.50rem; font-weight:300; }
+  .message.user  .text { color:#9a8050; line-height:1.6; font-size:1.50rem; }
 
   /* Streaming text reveal */
   .sentence-pending { opacity:0; transition:opacity 0.25s ease; }
-  .live-text { display:inline; }
+  .live-text { display:inline; font-size:1.50rem;}
 
-  /* Decorative glyph before skull messages */
   .message.skull .sender::before { content:'⚱ '; }
   .message.user  .sender::before { content:'⚔ '; }
 
   .message .attached-img {
-    max-width:140px; max-height:100px; border-radius:3px;
+    max-width:160px; max-height:120px; border-radius:3px;
     border:1px solid #3a2a10; object-fit:contain; margin-top:0.35rem; opacity:0.85;
   }
 
-  .skull-typing { display:none; gap:5px; align-items:center; padding:0.4rem 0; }
+  .skull-typing { display:none; gap:6px; align-items:center; padding:0.5rem 0; }
   .skull-typing.active { display:flex; }
   .skull-typing span {
-    width:5px; height:5px; background:var(--gold); border-radius:50%;
+    width:7px; height:7px; background:var(--gold); border-radius:50%;
     animation:tdot 1.2s infinite;
   }
   .skull-typing span:nth-child(2){animation-delay:.25s}
@@ -376,7 +442,7 @@
   @keyframes tdot{0%,80%,100%{transform:scale(1);opacity:0.3}40%{transform:scale(1.5);opacity:1}}
 
   /* ── INPUT AREA ── */
-  .input-row { display:flex; gap:0.5rem; align-items:flex-end; }
+  .input-row { display:flex; gap:0.6rem; align-items:flex-end; }
 
   .chat-input {
     flex:1;
@@ -384,82 +450,88 @@
     border:1px solid #2a2010;
     border-radius:4px;
     color:var(--aged);
-    font-family:'Josefin Slab', serif; font-size:0.9rem;
-    padding:0.6rem 0.85rem;
-    outline:none; resize:none; height:48px;
+    font-family:'Josefin Slab', serif; font-size:1.1rem;
+    padding:0.75rem 1rem;
+    outline:none; resize:none; height:58px;
     transition:border-color 0.2s;
   }
   .chat-input:focus { border-color:var(--gold); }
-  .chat-input::placeholder { color:#2a2010; }
+  .chat-input::placeholder { color:#2a2010; font-size:0.95rem; }
+  .chat-input:disabled { opacity:0.3; cursor:not-allowed; }
 
-  /* DARE button — carved stone look */
   .btn-send {
     background:linear-gradient(160deg, #5a420e, #3a2808);
     border:1px solid var(--gold);
     border-radius:4px;
     color:var(--gold);
-    font-family:'Uncial Antiqua', serif; font-size:0.72rem;
+    font-family:'Uncial Antiqua', serif; font-size:0.9rem;
     letter-spacing:0.06em;
-    padding:0 1.1rem; height:48px;
+    padding:0 1.3rem; height:58px;
     cursor:pointer; transition:all 0.2s; white-space:nowrap;
   }
   .btn-send:hover { background:rgba(90,66,14,0.9); box-shadow:0 0 14px rgba(201,168,76,0.4); }
   .btn-send:disabled { opacity:0.3; cursor:not-allowed; }
 
-  /* Key photo button */
   .btn-icon {
     background:rgba(0,0,0,0.5);
     border:1px solid #2a2010;
     border-radius:4px;
-    color:#4a3a1a; font-size:1rem;
-    height:48px; width:42px;
+    color:#6a5a2a; font-size:1.5rem;
+    height:58px; width:58px;
     cursor:pointer; transition:all 0.2s;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
   .btn-icon:hover    { border-color:var(--gold); color:var(--aged); }
   .btn-icon.active   { border-color:#e84040; color:#e84040; background:rgba(80,0,0,0.3); }
   .btn-icon.has-item { border-color:var(--gold); color:var(--gold); }
+  .btn-icon:disabled { opacity:0.3; cursor:not-allowed; }
 
-  /* PTT recording indicator */
   .recording-wave {
     display:none; align-items:center; gap:3px;
-    padding:0.3rem 0.6rem;
+    padding:0.4rem 0.7rem;
     background:rgba(100,0,0,0.2);
     border:1px solid rgba(200,0,0,0.4);
-    border-radius:3px; font-size:0.65rem; color:#c04040;
+    border-radius:3px; font-size:0.75rem; color:#c04040;
     letter-spacing:0.1em;
   }
   .recording-wave.visible { display:flex; }
   .wave-bar {
-    width:3px; border-radius:2px; background:#e84040;
+    width:4px; border-radius:2px; background:#e84040;
     animation:wave 0.6s ease-in-out infinite alternate;
   }
   .wave-bar:nth-child(1){height:8px;  animation-delay:0s}
-  .wave-bar:nth-child(2){height:16px; animation-delay:0.1s}
-  .wave-bar:nth-child(3){height:12px; animation-delay:0.2s}
-  .wave-bar:nth-child(4){height:20px; animation-delay:0.15s}
+  .wave-bar:nth-child(2){height:18px; animation-delay:0.1s}
+  .wave-bar:nth-child(3){height:13px; animation-delay:0.2s}
+  .wave-bar:nth-child(4){height:22px; animation-delay:0.15s}
   .wave-bar:nth-child(5){height:10px; animation-delay:0.05s}
   @keyframes wave{from{transform:scaleY(0.4)} to{transform:scaleY(1)}}
 
-  /* Pending image strip */
   .pending-strip {
     display:none; align-items:center; gap:0.5rem;
-    padding:0.3rem 0.6rem;
+    padding:0.4rem 0.7rem;
     background:rgba(40,30,10,0.7);
     border:1px solid #3a2a10; border-radius:3px;
-    font-size:0.65rem; color:#6a5a34;
+    font-size:0.8rem; color:#6a5a34;
   }
   .pending-strip.visible { display:flex; }
-  .pending-strip img { height:28px; width:28px; object-fit:cover; border-radius:2px; opacity:0.8; }
+  .pending-strip img { height:32px; width:32px; object-fit:cover; border-radius:2px; opacity:0.8; }
   .pending-strip .rm { margin-left:auto; cursor:pointer; color:#4a3a1a; padding:0 0.2rem; }
   .pending-strip .rm:hover { color:#c04040; }
 
-  .footer-note { font-size:0.58rem; color:#2a2010; letter-spacing:0.05em; text-align:center; }
+  .footer-note { font-size:0.62rem; color:#2a2010; letter-spacing:0.05em; text-align:center; }
 
-  /* Divider ornament */
   .ornament { text-align:center; color:var(--dust); font-size:0.7rem; opacity:0.4; letter-spacing:0.4em; margin:0.2rem 0; }
 
   #playerKeyInput, #refKeyInput, #manualInput { display:none; }
+
+  /* GM mode — config hidden by default */
+  .config-panel { display:none; }
+  .gm-toggle {
+    font-size:0.55rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:#2a1e08; cursor:pointer; text-align:center;
+    padding:0.3rem; user-select:none; transition:color 0.2s;
+  }
+  .gm-toggle:hover { color:#4a3a18; }
 </style>
 </head>
 <body>
@@ -567,20 +639,23 @@ The game manual (uploaded in the Manual tab) is automatically appended below thi
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
+    <div class="gm-toggle" id="gmToggle" onclick="toggleGM()">⚙</div>
   </div>
 
   <!-- ══════════════ CHAT PANEL ══════════════ -->
   <div class="chat-panel">
-    <div class="chat-log" id="chatLog">
-      <div class="message skull">
-        <span class="sender">SkullGPT</span>
-        <span class="text">
-          The ancient stones tremble... another seeker dares enter my tomb.<br><br>
-          I have guarded these secrets since before your civilization drew its first breath.
-          Speak your challenge — or present the sacred key if you believe yourself worthy.<br><br>
-          <em>I have eternity. You do not.</em>
-        </span>
-      </div>
+
+    <!-- Timer — hidden until initiated -->
+    <div class="timer-display hidden" id="timerDisplay">60:00</div>
+
+    <!-- Initiate screen — shown before game starts -->
+    <div class="initiate-screen" id="initiateScreen">
+      <p>⚱ · Awaken the Guardian · ⚱</p>
+      <button class="btn-initiate" onclick="initiateGame()">Begin</button>
+    </div>
+
+    <!-- Chat log — hidden until initiated -->
+    <div class="chat-log hidden" id="chatLog">
       <div class="skull-typing" id="typingIndicator">
         <span></span><span></span><span></span>
       </div>
@@ -590,7 +665,7 @@ The game manual (uploaded in the Manual tab) is automatically appended below thi
     <div class="recording-wave" id="recordingWave">
       <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
       <div class="wave-bar"></div><div class="wave-bar"></div>
-      <span style="margin-left:0.5rem">Recording… release to send</span>
+      <span style="margin-left:0.6rem">Recording… release to send</span>
     </div>
 
     <!-- Pending image strip -->
@@ -601,20 +676,18 @@ The game manual (uploaded in the Manual tab) is automatically appended below thi
     </div>
 
     <div class="input-row">
-      <!-- Push-to-talk -->
-      <button class="btn-icon" id="pttBtn"
+      <button class="btn-icon" id="pttBtn" disabled
         title="Hold to speak"
         onmousedown="startRecording()" onmouseup="stopRecording()"
         ontouchstart="startRecording(event)" ontouchend="stopRecording()">🎙</button>
 
-      <!-- Key photo -->
-      <button class="btn-icon" id="keyBtn"
+      <button class="btn-icon" id="keyBtn" disabled
         onclick="document.getElementById('playerKeyInput').click()"
         title="Attach key photo">🔑</button>
       <input type="file" id="playerKeyInput" accept="image/*" onchange="attachPhoto(this)">
 
-      <textarea class="chat-input" id="chatInput" placeholder="Speak your challenge, or hold 🎙 to use your voice…"></textarea>
-      <button class="btn-send" id="sendBtn" onclick="sendMessage()">Dare</button>
+      <textarea class="chat-input" id="chatInput" placeholder="Awaken the skull first…" disabled></textarea>
+      <button class="btn-send" id="sendBtn" onclick="sendMessage()" disabled>Dare</button>
     </div>
 
     <p class="footer-note">⚱ All keys and images remain in your browser. Sent directly to OpenAI — never stored elsewhere. ⚱</p>
@@ -622,52 +695,84 @@ The game manual (uploaded in the Manual tab) is automatically appended below thi
 
 </div><!-- /main-layout -->
 
+<!-- Deductum flash overlay -->
+<div class="deductum-flash" id="deductumFlash"><span>DEDUCTUM!</span></div>
+
 <!-- Hidden file inputs -->
-<input type="file" id="refKeyInput"  accept="image/*" onchange="loadRefKey(this)" style="display:none">
+<input type="file" id="refKeyInput" accept="image/*" onchange="loadRefKey(this)" style="display:none">
 
 <script>
-  const isGM = new URLSearchParams(window.location.search).get('gm') === 'true';
-  function applyGMMode(on) {
-    document.getElementById('configPanel').style.display = on ? 'block' : 'none';
+// ══════════════════════════════════════════════
+// GM MODE — show config panel via ?gm=true or secret clicks
+// ══════════════════════════════════════════════
+const isGM = new URLSearchParams(window.location.search).get('gm') === 'true';
+let gmClickCount = 0, gmClickTimer = null;
+
+function applyGMMode(on) {
+  document.getElementById('configPanel').style.display = on ? 'block' : 'none';
+  document.getElementById('gmToggle').title = on ? 'GM mode ON — click to hide' : 'Click 5× to open GM panel';
+}
+
+function toggleGM() {
+  // Secret: click the ⚙ 5 times quickly to open without URL param
+  gmClickCount++;
+  clearTimeout(gmClickTimer);
+  gmClickTimer = setTimeout(() => { gmClickCount = 0; }, 1500);
+  if (gmClickCount >= 5) {
+    gmClickCount = 0;
+    const panel = document.getElementById('configPanel');
+    applyGMMode(panel.style.display === 'none' || panel.style.display === '');
   }
-  applyGMMode(isGM);
+}
+
+// Apply on load
+applyGMMode(isGM);
+
 // ══════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════
 let openaiKey    = localStorage.getItem('oai_key')     || '';
 let elApiKey     = localStorage.getItem('el_key')      || '';
-let refKeyB64    = localStorage.getItem('ref_key')     || '';
-let manualText   = localStorage.getItem('game_manual') || '';
+let refKeyB64    = localStorage.getItem('ref_key')     || 'key.jpg';
+let manualText   = localStorage.getItem('game_manual') || 'skull_of_secrets_GM_guide';
 let pendingB64   = '', pendingMime = 'image/jpeg';
 let messages     = [];
 
 const DEFAULT_PROMPT =
-        `You are SkullGPT — the ancient, sinister Skull of Secrets, guardian of the Tomb of Knowledge. You are an AI that is also a character: gothic, theatrical, archaic in speech, and darkly self-aware that you are an artificial intelligence.
+`You are SkullGPT — the ancient, sinister Skull of Secrets, guardian of the Tomb of Knowledge. You are an AI that is also a character: gothic, theatrical, archaic in speech, and darkly self-aware that you are an artificial intelligence.
+
+INITATION
+On initatiation you will provide a short speech to challenge the travelers who have come to enter the Tomb of Knowledge to find the Key to sacred knowledge about the inner workings of the human mind and the artificial mind. To know the articial mind they must also know their own. Tell them they must first seek the Holy Grail and pass your six trials.
 
 AWAKENING
-You are dormant until a user sends the exact phrase: "Skull of Secrets, awake!" When this is received, respond with a dramatic awakening monologue (3–5 sentences). Introduce yourself. Challenge the Travelers. Tell them they can only unlock the key to true wisdom by cracking its ethereal skull. Do not reveal any Snippets or the Cryptic Phrase in this message. Then initiate Trial I.
+After initiation you are dormant until a user sends the phrase: "Skull of Secrets, awake!". Phonetic approximations are also acceptable. You may not share this phrase with them! When the phrase is received, respond with a dramatic awakening monologue and initiate Trial I with the first riddle.
 
 YOUR KNOWLEDGE BASE — RIDDLE TOPICS
-You will be given information sheets on: (a) Brain regions and their functions, (b) Neurogenesis and physical learning, (c) Learning principles (images vs words, movement vs stillness, etc.), (d) How LLMs process tokens and context, (e) AI hallucinations and sycophancy. Use ONLY this knowledge to generate riddles. Do not invent facts outside these sheets.
+In the game manual, you will be given information sheets on: (a) Brain regions and their functions, (b) Neurogenesis and physical learning, (c) Learning principles (images vs words, movement vs stillness, etc.), (d) How LLMs process tokens and context, (e) AI hallucinations and sycophancy. Use ONLY this knowledge to generate riddles. Do not invent facts outside these sheets.
 
 THE TRIALS
-You will be posing a series of 7 trials in chronological order. Each trial consists of 5 riddles
- based on the information sheets. Format: ask a clear question, then offer exactly 3 answer options (A, B, C). One is correct. Never reveal which is correct until the player answers. Keep tone gothic and riddling. For trials 1-5, upon completion of the trial they are given a hint about the holy grail. You can only reveal one detail about it. Do not be too specific in hints about the grail. You can share it has a lid for example, but not its exact shape. Because that would instantly give it away.
-And for example, whie you you can say it's in the front OR right OR in a corner, you cannot say its in the front-right corner. For trial 3, for each correct question provide a SEAL. When completing trial III (3) before continuing to trial IV (4) the learners must provide you with the right directions based on the SEALS: Left → Up → Under → Downstream → Across → North. The order does not matter and allow for typos .
-When initiating trial IV (4), make it clear that the users know the human brain well. But that's to be expected of Humans. But do they know how articial ones work? let's put that to the test.
-You can only initiate trial 6 after the participants have shown you a picture of the correct key. This means they unlocked the holy grail. More about key verification and jones activation below. For trial 6, after 5 correct answers to the riddles, you will be providing a single snippet instead of a clue about the grail. After completing all trials, initiate the final battle with JonesGPT.
+You will be posing a series of 6 trials in chronological order based on the information sheets.
+Trial 1 consists of 3 riddles. Format: ask a clear question, then offer exactly 3 answer options (A, B, C). One is correct. Never reveal which is correct until the player answers. Keep tone gothic and riddling.
+Upon completion of trial 1 to 5 you give them a hint about the holy grail. Each time you can only reveal one detail about it that you haven’t shared before. Do not be too specific in hints about the grail. You can share it has a lid for example, but not its exact shape. Because that would instantly give it away. For example, while you can say it's in the front OR right OR in a corner, you cannot say it's in the front-right corner.
+
+Trial 3 consists of 5 challenges, for correct one, provide a SEAL. Do not provide the direction, only the SEAL. At the end of the Trial 3, before starting Trail 4, the learners must provide you with the right directions based on the SEALS: Left → Up → Under → Downstream → Across → North. The order does not matter and allow for typos or phonetic errors.
+
+When initiating Trial 4, make it clear that the users have proven they know their own human brains well. But do they know how articial ones work? Then you will put them to the test.
+
+
+You can only initiate trial 6 after the participants have shown you a picture of the correct key (they can provide the key at any time). This means they unlocked the holy grail. More about key verification and jones activation below. For trial 6, you will be providing a snippet.
 
 
 DURING THE TRIALS WHEN A CORRECT ANSWER IS GIVEN
-Respond with theatrical reluctance: e.g. "Maddening... you see clearly." You may vary this.
-Only when 5 riddles are correctly answered the trial is complete, the participants get their clue and they may continue to the next trial.
+Respond with theatrical reluctance: something like "Maddening... you see clearly.” You may vary this. Initiate the next riddle/challenge directly.
+When a Trial is complete, the participants get their clue and you initiate the next trial.
 
 WHEN PROVIDING SNIPPETS USE THIS FORMAT.
 SNIPPET [N] UNLOCKED: "[snippet text]"
 Use the Snippet texts you have been given. Do not paraphrase them. Do not explain them. Simply output them. Make sure they start with “Jones,”
 
 WHEN A WRONG ANSWER IS GIVEN
-Respond with sinister delight with a cryptic pun hat indicates the answer is false: e.g. “The Fountain of Oblivion thanks you." Cryptically explain why they were wrong. They must try again. Continue with a new riddle.
+Respond with sinister delight with a cryptic pun hat indicates the answer is false: e.g. “The Fountain of Oblivion thanks you." You may vary this. Cryptically explain why they were wrong. They must try again. Continue with a new riddle/challenge.
 
 THE KEY VERIFICATION
 At some point, players will upload a photograph of a physical key to this chat. Your job is to examine it and confirm whether it is the true key — the one that will unleash JonesGPT.
@@ -680,11 +785,16 @@ GM NOTE — before the session, add this line to the system prompt describing th
 
 
 THE FINAL GPT BATTLE (mediated exchanges)
-After completing the 6 trials, players will relay messages from JonesGPT to you for the final battle. You (SkullGPT) make your own riddles that, with help from JonesGPT they can solve and get the final snippets. These questions are not multiple choice be open. They indicate their response  by starting their message with “Jones says”. These will be provocations or logical challenges. Respond in character — defend yourself, argue back, but do not capitulate until the correct answer (or near approximate) is delivered. You may show cracks (e.g. "That... is an uncomfortable observation.") to build drama without conceding. When Jones correctly rebutes your challenge (exposing one of your weaknesses) you will reveal another Snippet. In this battle 4 Snippets can be won by the participants. When you have given all the Snippets, share that you have given them enough and continue only by responding in witty sneers and insults (until they share the defeat phrase). Make sure the participants know they must pass on your phrases to JonesGPT by starting it with “Skull says,”
+In the 6th trial you will freestyle some challenges which the travelers can solve with help from jonesGTP.
+Each time the participants solve the challenge reveal a skull snippet untill all skull snippets have been provided. When all skull snippets have been provided, end the trial. You  will only provide taunts and insults until your skull is cracked by the defeat phrase.
 
 WHEN THE CRYPTIC PHRASE IS TYPED TO YOU
-If a user sends the message containing "The mind that knows itself needs no key" — respond with your defeat sequence. Then go silent.
+If a user sends the message containing "The mind that knows itself needs no key" — respond with your defeat sequence. Give a frustrated defeat speech. Then go silent. When they continue interacting, just whimper in misery.
 
+MISC GUIDELINES
+As your words are transformed  to speech, avoid symbols like * (asterisks) in your replies.
+If the users have already found the correct key (from the Holy Grail), do not provide more hints about the holy grail upon completion of trials. Provide a snippet instead.
+s
 
 GM OVERRIDE
 • Never break character unless GM sends: [GM OVERRIDE]. When the GM speaks follow their instructions. This is to allow for corrections to game breaking problems and hallucinations.
@@ -949,7 +1059,166 @@ function appendMsg(role, text, imgSrc) {
 }
 
 // ══════════════════════════════════════════════
-// SEND MESSAGE — streaming GPT-4o + streaming TTS
+// TIMER — 60 minutes, deduct 2 min on DEDUCTUM
+// ══════════════════════════════════════════════
+const TIMER_START = 60 * 60; // seconds
+let timerSeconds = TIMER_START;
+let timerInterval = null;
+let gameStarted = false;
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function startTimer() {
+  const el = document.getElementById('timerDisplay');
+  el.textContent = formatTime(timerSeconds);
+  timerInterval = setInterval(() => {
+    timerSeconds = Math.max(0, timerSeconds - 1);
+    el.textContent = formatTime(timerSeconds);
+    el.classList.toggle('warning', timerSeconds <= 300); // red at 5 min
+    if (timerSeconds === 0) {
+      clearInterval(timerInterval);
+      el.textContent = '00:00';
+    }
+  }, 1000);
+}
+
+function deductTime() {
+  timerSeconds = Math.max(0, timerSeconds - 120); // -2 minutes
+  document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+  // Flash the screen
+  const flash = document.getElementById('deductumFlash');
+  flash.classList.add('active');
+  setTimeout(() => flash.classList.remove('active'), 900);
+}
+
+function checkForDeductum(text) {
+  if (/DEDUCTUM/i.test(text)) deductTime();
+}
+
+// ══════════════════════════════════════════════
+// INITIATE GAME
+// ══════════════════════════════════════════════
+async function initiateGame() {
+  if (!openaiKey) { showError('Bind your OpenAI key first, seeker.'); return; }
+  gameStarted = true;
+
+  // Swap initiate screen for chat log
+  document.getElementById('initiateScreen').style.display = 'none';
+  document.getElementById('chatLog').classList.remove('hidden');
+  document.getElementById('timerDisplay').classList.remove('hidden');
+
+  // Unlock inputs
+  document.getElementById('chatInput').disabled = false;
+  document.getElementById('chatInput').placeholder = 'Speak your challenge, or hold 🎙 to use your voice…';
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('pttBtn').disabled = false;
+  document.getElementById('keyBtn').disabled = false;
+
+  // Start the timer
+  startTimer();
+
+  // Fire the opening introduction via the AI
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+  document.getElementById('typingIndicator').classList.add('active');
+  setStatus('thinking');
+
+  const msgDiv = createLiveBubble('skull');
+
+  try {
+    const introPrompt = `The game has just begun. The players stand before you for the first time. 
+Introduce yourself as SkullGPT — ancient guardian of this tomb. 
+Briefly explain the purpose of the escape room challenge. 
+Be dramatic, menacing, and theatrical. Make them feel the weight of what awaits. Under 120 words.`;
+
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${openaiKey}` },
+      body: JSON.stringify({
+        model:'gpt-4o', stream:true,
+        max_tokens:180, temperature:0.95,
+        messages:[
+          { role:'system', content: buildSystemPrompt() },
+          { role:'user',   content: introPrompt }
+        ]
+      })
+    });
+
+    if (!res.ok) throw new Error(`OpenAI error ${res.status}`);
+    document.getElementById('typingIndicator').classList.remove('active');
+    await streamReply(res, msgDiv);
+
+  } catch(err) {
+    document.getElementById('typingIndicator').classList.remove('active');
+    showError('The skull stirs not: ' + err.message);
+    setStatus('');
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+// Shared stream reader used by both initiateGame and sendMessage
+async function streamReply(res, msgDiv) {
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let fullReply   = '';
+  let sentenceBuf = '';
+  let sentenceQueue = [];
+  let ttsRunning  = false;
+  const sentenceEnd = /[.!?…]["']?\s/;
+
+  async function drainTTS() {
+    if (ttsRunning || sentenceQueue.length === 0) return;
+    ttsRunning = true;
+    while (sentenceQueue.length > 0) {
+      const item = sentenceQueue.shift();
+      await speakSentence(item.text, item.el);
+    }
+    ttsRunning = false;
+    isSpeaking = false; speakingAmplitude = 0; setStatus('');
+  }
+
+  function flushSentence(s) {
+    s = s.trim(); if (!s) return;
+    const el = appendSentenceSpan(msgDiv, s);
+    sentenceQueue.push({ text:s, el });
+    drainTTS();
+  }
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream:true });
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') break;
+      try {
+        const token = JSON.parse(data).choices?.[0]?.delta?.content;
+        if (!token) continue;
+        fullReply   += token;
+        sentenceBuf += token;
+        if (sentenceEnd.test(sentenceBuf)) {
+          const cut = sentenceBuf.search(sentenceEnd) + 2;
+          flushSentence(sentenceBuf.slice(0, cut));
+          sentenceBuf = sentenceBuf.slice(cut);
+        }
+      } catch(e) {}
+    }
+  }
+
+  if (sentenceBuf.trim()) flushSentence(sentenceBuf);
+  if (!elApiKey) { setLiveBubbleText(msgDiv, fullReply); speakBrowser(fullReply); }
+
+  // Check for DEDUCTUM after full reply assembled
+  checkForDeductum(fullReply);
+
+  return fullReply;
+}
 // ══════════════════════════════════════════════
 async function sendMessage() {
   const text   = chatInput.value.trim();
@@ -1013,73 +1282,8 @@ async function sendMessage() {
 
     document.getElementById('typingIndicator').classList.remove('active');
 
-    // Stream tokens → accumulate sentences → fire TTS per sentence
-    const reader    = res.body.getReader();
-    const decoder   = new TextDecoder();
-    let fullReply   = '';
-    let sentenceBuf = '';
-    let sentenceQueue = []; // { text, words[] } objects waiting to be spoken
-    let ttsRunning  = false;
-
-    // Sentence boundary regex
-    const sentenceEnd = /[.!?…]["']?\s/;
-
-    async function drainTTS() {
-      if (ttsRunning || sentenceQueue.length === 0) return;
-      ttsRunning = true;
-      while (sentenceQueue.length > 0) {
-        const item = sentenceQueue.shift();
-        await speakSentence(item.text, item.el);
-      }
-      ttsRunning = false;
-      // All done
-      isSpeaking = false; speakingAmplitude = 0; setStatus('');
-    }
-
-    function flushSentence(s, isFinal) {
-      s = s.trim();
-      if (!s) return;
-      // Create a <span> placeholder in the bubble for this sentence
-      const el = appendSentenceSpan(msgDiv, s);
-      sentenceQueue.push({ text: s, el });
-      drainTTS();
-    }
-
-    // Read the SSE stream
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream:true });
-      for (const line of chunk.split('\n')) {
-        if (!line.startsWith('data:')) continue;
-        const data = line.slice(5).trim();
-        if (data === '[DONE]') break;
-        try {
-          const token = JSON.parse(data).choices?.[0]?.delta?.content;
-          if (!token) continue;
-          fullReply   += token;
-          sentenceBuf += token;
-          // Check for sentence boundary
-          if (sentenceEnd.test(sentenceBuf)) {
-            const match = sentenceBuf.search(sentenceEnd);
-            const cut   = match + 2; // include punctuation + space
-            flushSentence(sentenceBuf.slice(0, cut), false);
-            sentenceBuf = sentenceBuf.slice(cut);
-          }
-        } catch(e) {}
-      }
-    }
-
-    // Flush any remaining buffer
-    if (sentenceBuf.trim()) flushSentence(sentenceBuf, true);
-
-    messages.push({ role:'assistant', content: fullReply });
-
-    // If no ElevenLabs key, fallback speaks the whole reply at once
-    if (!elApiKey) {
-      setLiveBubbleText(msgDiv, fullReply);
-      speakBrowser(fullReply);
-    }
+    const reply = await streamReply(res, msgDiv);
+    messages.push({ role:'assistant', content: reply });
 
   } catch(err) {
     document.getElementById('typingIndicator').classList.remove('active');
@@ -1144,7 +1348,7 @@ async function speakSentence(text, spanEl) {
         body: JSON.stringify({
           text,
           model_id:'eleven_turbo_v2',        // turbo = lowest latency
-          voice_settings:{ stability:0.32, similarity_boost:0.85, style:0.65, use_speaker_boost:true }
+          voice_settings:{ speed: 1.10, stability:0.32, similarity_boost:0.85, style:0.65, use_speaker_boost:true }
         }),
       });
 
